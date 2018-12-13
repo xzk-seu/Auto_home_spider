@@ -20,10 +20,18 @@ def get_page_count(reply_count):
 
 # 获取一个帖子单页的内容
 def get_page_content(url):
+    result_list = list()
     r = _get_request(url)
     soup = BeautifulSoup(r, 'lxml')
-
-    return 0
+    conright_list = soup.find_all('div', 'conright fr')
+    for c in conright_list:
+        s = c.text.strip()
+        result_list.append(s.strip())
+    conright_list = soup.find_all('div', 'conright fl')
+    for c in conright_list:
+        s = c.text.strip()
+        result_list.append(s.strip())
+    return result_list
 
 
 # 获得一个帖子的所有页的内容
@@ -36,7 +44,8 @@ def get_content(index):
     for page in range(1, page_count+1):
         url = HOST+(href_template % page)
         print(url)
-        get_page_content(url)
+        page_content = get_page_content(url)
+        print(page_content)
         break
     return 1
 
