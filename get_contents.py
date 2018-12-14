@@ -24,7 +24,6 @@ def get_top_floor(soup):
     r_dict = dict()
     f0 = soup.find('div', id='F0')
     if not f0:
-        print('此地址也许是视频， pass。。。')
         return None
     temp = f0.find('div', 'conright fr')
     info_0 = temp.contents[1]
@@ -75,12 +74,12 @@ def get_page_content(url, page, reply_count, index_num):
 
     result_list = list()
     r = _get_request(url)
-    soup = BeautifulSoup(r, 'lxml')
+    soup = BeautifulSoup(r, 'html.parser')
 
     if page == 1:
         top_floor = get_top_floor(soup)
         if not top_floor:
-            print(url)
+            print(url, '此地址也许是视频， pass。。。')
             with open(f_path, 'w') as fw:
                 json.dump(result_list, fw)
                 print('TEMP FILE: temp_%d_%d.json is done!' % (index_num, page))
