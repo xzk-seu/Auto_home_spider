@@ -80,6 +80,7 @@ def get_page_content(url, page, reply_count, index_num):
     if page == 1:
         top_floor = get_top_floor(soup)
         if not top_floor:
+            print(url)
             with open(f_path, 'w') as fw:
                 json.dump(result_list, fw)
                 print('TEMP FILE: temp_%d_%d.json is done!' % (index_num, page))
@@ -94,10 +95,12 @@ def get_page_content(url, page, reply_count, index_num):
     for i in range(begin, end):
         reply = get_reply_floor(soup, i)
         if not reply:
-            with open(f_path, 'w') as fw:
-                json.dump(result_list, fw)
-                print('TEMP FILE: temp_%d_%d.json is done!' % (index_num, page))
-                return
+            print(url, '本楼已被管理员删除')
+            continue
+            # with open(f_path, 'w') as fw:
+            #     json.dump(result_list, fw)
+            #     print('TEMP FILE: temp_%d_%d.json is done!' % (index_num, page))
+            #     return
         result_list.append(reply)
 
     with open(f_path, 'w') as fw:
@@ -210,7 +213,7 @@ def process_from_index(index_page_num, car_type):
 
 # 主程序入口
 def run():
-    car_type = 'rongwei'
+    car_type = 'boyue'
     page_limit = 1000
 
     # for index_page_num in range(1, page_limit+1):
