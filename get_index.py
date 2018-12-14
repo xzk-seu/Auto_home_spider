@@ -27,6 +27,8 @@ def _get_request(url, param=None):
     # "utf-8"
     if resp.status_code == 200:
         return resp.text
+    elif resp.status_code == 404:
+        return ''
     else:
         raise Exception('Error: {0} {1}'.format(resp.status_code, resp.reason))
 
