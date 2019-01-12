@@ -3,13 +3,13 @@ import os
 import math
 import time
 import random
-from get_index import _get_request, _get_request_from_selenium
 from bs4 import BeautifulSoup
 from multiprocessing import Pool
 import shutil
 from selenium import webdriver
 
-
+PROXY = {'http': 'http://DONGNANHTT1:T74B13bQ@http-proxy-t1.dobel.cn:9180',
+         'https': 'http://DONGNANHTT1:T74B13bQ@http-proxy-t1.dobel.cn:9180'}
 HOST = 'https://club.autohome.com.cn/'
 
 
@@ -74,6 +74,7 @@ def get_reply_floor(soup, floor_num):
     #     print(n, j)
 
 
+# 检查是否是验证码页面
 def check_text(r, url):
     error_text = ['您访问的页面出错了！', '请先拖动验证码到相应位置' ]
     for t in error_text:
@@ -81,6 +82,22 @@ def check_text(r, url):
             print(url, t)
             return False
     return True
+
+
+def _get_request_from_selenium(url):
+    chrome_driver = 'C:\Program Files\chromedriver_win32\chromedriver.exe'
+    webdriver.Proxy = PROXY
+    browser = webdriver.Chrome(executable_path=chrome_driver)
+    browser.get(url)
+    # print(browser.page_source)
+    r = browser.page_source
+    while not check_text(r, url):
+        t = random.choice(range(40, 80))
+        print('sleep %d' % t)
+        time.sleep(t)
+        r = browser.page_source
+    browser.close()
+    return r
 
 
 # 获取一个帖子单页的内容
@@ -96,17 +113,17 @@ def get_page_content(url, page, reply_count, index_num):
         return
 
     result_list = list()
-    r = _get_request(url)
-    if r == '404':
+    r = _get_request_from_selenium(url)
+    if r == '':
         print('This page is 404! ')
         with open(f_path, 'w') as fw:
             json.dump(result_list, fw)
             print('TEMP FILE: temp_%d_%d.json is done!' % (index_num, page))
-    while not check_text(r, url):
-        t = random.choice(range(40, 80))
-        print('sleep %d' % t)
-        time.sleep(t)
-        r = _get_request(url)
+    # while not check_text(r, url):
+    #     t = random.choice(range(40, 80))
+    #     print('sleep %d' % t)
+    #     time.sleep(t)
+    #     r = _get_request(url)
 
     soup = BeautifulSoup(r, 'html.parser')
 
@@ -226,7 +243,7 @@ def process_from_index(index_page_num, car_type):
 
     index_path = os.path.join(os.getcwd(), 'index', car_type, '%d.json' % index_page_num)
     while True:
-        pool = Pool(2)
+        pool = Pool(20)
         with open(index_path, 'r') as fr:
             index_list = json.load(fr)
         for n, index in enumerate(index_list):

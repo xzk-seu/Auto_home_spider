@@ -5,30 +5,63 @@ import requests
 import random
 from bs4 import BeautifulSoup
 from multiprocessing import Pool
+from selenium import webdriver
 
+# PROXY = {'http': 'http://DONGNANHTT1:T74B13bQ@http-proxy-sg2.dobel.cn:9180',
+#          'https': 'http://DONGNANHTT1:T74B13bQ@http-proxy-sg2.dobel.cn:9180'}
 
-PROXY = {'http': 'http://DONGNANHTT1:T74B13bQ@http-proxy-sg2.dobel.cn:9180',
-         'https': 'http://DONGNANHTT1:T74B13bQ@http-proxy-sg2.dobel.cn:9180'}
-_HEADERS = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/'
-                          '537.36 (KHTML, like Gecko) Chrome/70.0.3538.67 Safari/537.36',}
+PROXY = {'http': 'http://DONGNANHTT1:T74B13bQ@http-proxy-t1.dobel.cn:9180',
+         'https': 'http://DONGNANHTT1:T74B13bQ@http-proxy-t1.dobel.cn:9180'}
+
+# _HEADERS = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+#                           'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36',
+#             'Host': 'https://club.autohome.com.cn/',
+#             'Connection': 'keep-alive',
+#             'Cache-Control': 'max-age=0',
+#             'Upgrade-Insecure-Requests': '1',
+#             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+#             'Accept-Encoding': 'gzip, deflate, br',
+#             'Accept-Language': 'zh-CN,zh;q=0.9'}
+            # 'Cookie': '__ah_uuid=9950D635-C8B9-48D7-9AA3-6F07F8F225F2; fvlid=15447539049017Z9cwlUan8; sessionid=60E922E8-629D-4327-8411-C3A70D7473E3%7C%7C2018-12-14+10%3A18%3A35.541%7C%7C0; area=320115; ahpau=1; sessionip=58.213.113.80; sessionvid=D953A650-600E-4C38-9107-18E4015A6330; papopclub=E09C4C265FDC6A11C2475010786C0D4C; pbcpopclub=56ea70ec-046b-4b36-ac53-7bb573cd4834; pepopclub=6C999865FE3D420D4CCA9A8828B570B3; ahpvno=16; ref=0%7C0%7C0%7C0%7C2018-12-20+20%3A28%3A23.284%7C2018-12-14+10%3A18%3A35.541'}
 _SESSION = requests.session()
+_HEADERS = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+                          'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36'}
 HOST = 'https://club.autohome.com.cn/'
+COOKIE = dict()
+
+
+def _get_request_from_selenium(url):
+    chrome_driver = 'C:\Program Files\chromedriver_win32\chromedriver.exe'
+    webdriver.Proxy = PROXY
+    browser = webdriver.Chrome(executable_path=chrome_driver)
+    browser.get(url)
+    # print(browser.page_source)
+    r = browser.page_source
+    browser.close()
+    return r
 
 
 def _get_request(url, param=None):
+    # global COOKIE
+    # print('set COOKIE', COOKIE)
     resp = _SESSION.get(
         url,
         params=param,
         headers=_HEADERS,
         proxies=PROXY,
+        # cookies=COOKIE,
         timeout=random.choice(range(30, 100))
     )
     resp.encoding = resp.apparent_encoding
     # "utf-8"
     if resp.status_code == 200:
+        c = resp.cookies.get_dict()
+        # print('cookie', c)
+        if c != {}:
+            COOKIE = resp.cookies.get_dict()
         return resp.text
     elif resp.status_code == 404:
-        return ''
+        return '404'
     else:
         raise Exception('Error: {0} {1}'.format(resp.status_code, resp.reason))
 
@@ -98,7 +131,7 @@ def safe_write(page, car_type, car_id):
     try:
         write_result(page, car_type, car_id)
     except Exception as e:
-        print('in safe_wire: %s' % e)
+        print('in safe_write: %s' % e)
 
 
 # 主程序入口
@@ -122,7 +155,7 @@ if __name__ == '__main__':
     # for c_type, v in config.items():
     #     run(v['page_limit'], c_type, v['id'])
 
-    c_type = 'xinsiyu'
+    c_type = 'langyi'
     v = config[c_type]
     run(v['page_limit'], c_type, v['id'])
 
